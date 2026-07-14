@@ -1,3 +1,4 @@
+#define _POSIX_C_SOURCE 200112L
 #include<stdio.h>
 #include<sys/types.h>
 #include<sys/stat.h>
@@ -137,6 +138,50 @@ void rm(){
 
     for(int i = 1; i < argc; i++){
         if(unlink(argv[i]) != 0){
+            perror(argv[i]);
+            return;
+        }
+    }
+}
+
+void export(){
+    if(argc == 1){
+        //iterate through the environ and output all the environment variables.
+        for(char **env = environ; *env != NULL; env++){
+            printf("%s\n", *env);
+        }
+        return;
+    }
+
+    for(int i = 1; i < argc; i++){
+        char *eq = strchr(argv[i], '=');
+        if(eq == NULL){
+            fprintf(stderr, "export: invalid argument: %s\n", argv[i]);
+            continue;
+        }
+        if(eq == argv[i]){
+            fprintf(stderr, "export: invalid argument: %s\n", argv[i]);
+            continue;
+        }
+        *eq = '\0';
+        //setenv() is POSIX function, but not ISO C standard function
+        //It needs to be defined before including the header files
+        //Using #define _POSIX_C_SOURCE 200112L
+        if(setenv(argv[i], eq + 1, 1) < 0){
+            perror("export");
+            return;
+        };
+    }
+}
+
+void unset(){
+    if(argc < 2){
+        fprintf(stderr, "unset: missing operand\n");
+        return;
+    }
+
+    for(int i = 1; i < argc; i++){
+        if(unsetenv(argv[i]) != 0){
             perror(argv[i]);
             return;
         }

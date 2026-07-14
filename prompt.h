@@ -11,6 +11,7 @@ extern char *argv[MAX_ARGS];
 extern int argc;
 extern char *input_file;
 extern char *old_pwd;
+extern char **environ;
 
 void parse_line(char* line , char* argv[]);
 void handleMessage();

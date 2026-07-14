@@ -73,6 +73,29 @@ void handleMessage(){
     else if(strcmp(argv[0], "touch") == 0){
         touch();
     }
+    else if(strcmp(argv[0], "export") == 0){
+        export();
+    }
+    else if(strcmp(argv[0], "unset") == 0){
+        unset();
+    }
+    else if(strcmp(argv[0], "rm") == 0){
+        rm();
+    }
+    else if(strcmp(argv[0], "help") == 0){
+        printf(STYLE_BOLD COLOR_YELLOW"MyShell Help:\n");
+        printf(STYLE_RESET COLOR_YELLOW"Built-in commands:\n");
+        printf("pwd: Print the current working directory.\n");
+        printf("ls: List files and directories in the current directory.\n");
+        printf("echo: Display a line of text.\n");
+        printf("cd: Change the current working directory.\n");
+        printf("mkdir: Create a new directory.\n");
+        printf("touch: Create a new empty file or update the access and modification times of an existing file.\n");
+        printf("export: Set environment variables.\n");
+        printf("unset: Unset environment variables.\n");
+        printf("rm: Remove files or directories.\n");
+        printf("exit: Exit the shell.\n");
+    }
     else if(strcmp(argv[0], "exit") == 0){
         printf("Exiting MyShell...\n");
         exit(0);

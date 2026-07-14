@@ -25,7 +25,9 @@
 
 #define STYLE_BOLD      "\033[1m"
 #define STYLE_UNDERLINE "\033[4m"
+#define STYLE_RESET "\033[0m"
 
 #define CLEAR "\033[2J\033[H"
+
 
 #endif

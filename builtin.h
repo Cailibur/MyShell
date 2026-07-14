@@ -8,6 +8,7 @@ void touch();
 void ls();
 void echo();
 void rm();
-
+void export();
+void unset();
 
 #endif
