@@ -1,0 +1,1 @@
+char *rm_n(char *str);

@@ -10,5 +10,9 @@ void echo();
 void rm();
 void export();
 void unset();
+void history();
+void builtin_sleep();
+void clear();
+void builtin_jobs();
 
 #endif

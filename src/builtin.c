@@ -1,20 +1,23 @@
 #define _POSIX_C_SOURCE 200112L
-#include<stdio.h>
-#include<sys/types.h>
-#include<sys/stat.h>
-#include<sys/wait.h>
-#include<stdlib.h>
-#include<unistd.h>
-#include<fcntl.h>
-#include<utime.h>
-#include<time.h>
-#include<pwd.h>
-#include<limits.h>
-#include<dirent.h>
-#include<string.h>
-#include"prompt.h"
-#include"color.h"
+#include <stdio.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <sys/wait.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <utime.h>
+#include <time.h>
+#include <pwd.h>
+#include <limits.h>
+#include <dirent.h>
+#include <string.h>
+#include <errno.h>
+#include "prompt.h"
+#include "color.h"
 #include "builtin.h"
+#include "job.h"
+
 
 void pwd(){
     //getcwd(char* buf, size_t size) is a function that retrieves the current working directory and stores it in the buffer pointed to by buf. 
@@ -184,6 +187,69 @@ void unset(){
         if(unsetenv(argv[i]) != 0){
             perror(argv[i]);
             return;
+        }
+    }
+}
+
+void history(){
+    FILE *history_file = fopen(".myshell_history", "r");
+    if (history_file == NULL) {
+        perror("fopen");
+        return;
+    }
+
+    char line[MAX_LINE];
+    while (fgets(line, sizeof(line), history_file) != NULL) {
+        printf("%s", line);
+    }
+
+    fclose(history_file);
+}
+
+void builtin_sleep(){
+    if(argc < 2){
+        fprintf(stderr, "sleep: missing operand\n");
+        return;
+    }
+    if(argc > 2){
+        fprintf(stderr, "sleep: too many arguments\n");
+        return;
+    }
+    char *endptr = NULL;
+    errno = 0;
+    long seconds = strtol(argv[1], &endptr, 10);
+    if(errno != 0 || endptr == argv[1] || *endptr != '\0' || seconds < 0) {
+        fprintf(stderr, "sleep: invalid time interval: %s\n", argv[1]);
+        return;
+    }
+    sleep((unsigned)seconds);
+}
+
+void clear(){
+    fprintf(stdout, CLEAR);
+}
+
+void builtin_jobs(){
+    if(argc > 2){
+        fprintf(stderr, "jobs: too many arguments\n");
+        return;
+    }
+    check_job();
+    if(argc == 1){
+        job_query();
+    }
+    else if(argc == 2){
+        if(strcmp(argv[1], "-l") == 0){
+            job_query();
+        }   
+        else if(strcmp(argv[1], "-r") == 0){
+            job_query_on_status(JOB_RUNNING);
+        }
+        else if(strcmp(argv[1], "-s") == 0){
+            job_query_on_status(JOB_STOPPED);
+        }
+        else{
+            fprintf(stderr, "jobs: invalid option: %s\n", argv[1]);
         }
     }
 }

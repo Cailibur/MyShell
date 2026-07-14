@@ -1,12 +1,17 @@
-#include<stdio.h>
-#include<unistd.h>
-#include<pwd.h>
-#include<limits.h>
-#include<dirent.h>
-#include<string.h>
-#include"prompt.h"
-#include"color.h"
-
+#include <stdio.h>
+#include <unistd.h>
+#include <pwd.h>
+#include <limits.h>
+#include <dirent.h>
+#include <string.h>
+#include <stdlib.h>
+#include <sys/types.h>
+#include <sys/wait.h>
+#include <fcntl.h>
+#include "prompt.h"
+#include "color.h"
+#include "job.h"
+#include "exstr.h"
 
 struct passwd *pw = NULL;
 //PATH_MAX is defined in limits.h and specifies the maximum length of a path in the filesystem. 
@@ -44,8 +49,20 @@ int main(){
     while(1){
         outputUser();
         outputPath();
-        handleMessage();
+        toknize();
+        if(bg_exe == 1){
+            pid_t pid = fork();
+            if(pid == 0){
+                handleMessage();
+                exit(1);
+            }
+            else{
+                add_job(pid, rm_n(line));
+            }
+        }
+        else{
+            handleMessage();
+        }
     }
-
     return 0;
 }

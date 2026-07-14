@@ -12,7 +12,9 @@ extern int argc;
 extern char *input_file;
 extern char *old_pwd;
 extern char **environ;
+extern int bg_exe;
 
+void toknize();
 void parse_line(char* line , char* argv[]);
 void handleMessage();
 

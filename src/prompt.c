@@ -1,26 +1,28 @@
-#include<stdio.h>
-#include<sys/types.h>
-#include<sys/stat.h>
-#include<sys/wait.h>
-#include<stdlib.h>
-#include<unistd.h>
-#include<fcntl.h>
-#include<utime.h>
-#include<time.h>
-#include<pwd.h>
-#include<limits.h>
-#include<dirent.h>
-#include<string.h>
-#include"prompt.h"
-#include"builtin.h"
-#include"color.h"
+#include <stdio.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <sys/wait.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <utime.h>
+#include <time.h>
+#include <pwd.h>
+#include <limits.h>
+#include <dirent.h>
+#include <string.h>
+#include "prompt.h"
+#include "builtin.h"
+#include "color.h"
 
 char cwd[PATH_MAX];
 char line[MAX_LINE];
+char tmp_line[MAX_LINE];
 char *argv[MAX_ARGS];
 char *input_file;
 int argc = 0;
 char *old_pwd = NULL;
+int bg_exe = 0;
 
 //Using tokenizer to split the input into argvs.
 void parse_line(char* line , char* argv[]){
@@ -45,13 +47,37 @@ void parse_line(char* line , char* argv[]){
     }
     //printf("%d\n", argc);
     argv[argc] = NULL;
+    if(argc > 0 && strcmp(argv[argc-1], "&") == 0){
+        argv[--argc] = NULL;
+        bg_exe = 1;
+    }
+    else bg_exe = 0;
+}
+
+void write_history(const char *command) {
+    FILE *history_file = fopen(".myshell_history", "a");
+    if (history_file == NULL) {
+        perror("fopen");
+        return;
+    }
+    struct tm *cur_time;
+    time_t raw_time;
+    time(&raw_time);
+    cur_time = localtime(&raw_time);
+    char buffer[80];
+    strftime(buffer, 80, "%Y年%m月%d日 %H:%M:%S", cur_time);
+    fprintf(history_file, "%s %s", buffer, command);
+    fclose(history_file);
+}
+
+void toknize(){
+    if(fgets(line , sizeof(line) , stdin) == NULL) return;
+    strcpy(tmp_line, line);
+    write_history(line);
+    parse_line(tmp_line , argv);
 }
 
 void handleMessage(){
-    if(fgets(line , sizeof(line) , stdin) == NULL){
-        return;
-    }
-    parse_line(line , argv);
     if(argc == 0){
         return;
     }
@@ -96,12 +122,21 @@ void handleMessage(){
         printf("rm: Remove files or directories.\n");
         printf("exit: Exit the shell.\n");
     }
+    else if(strcmp(argv[0], "history") == 0){
+        history();
+    }
     else if(strcmp(argv[0], "exit") == 0){
         printf("Exiting MyShell...\n");
         exit(0);
     }
     else if(strcmp(argv[0], "clear") == 0){
-        printf(CLEAR);
+        clear();
+    }
+    else if(strcmp(argv[0], "sleep") == 0){
+        builtin_sleep();
+    }
+    else if(strcmp(argv[0], "jobs") == 0){
+        builtin_jobs();
     }
     else{
         pid_t pid = fork();
