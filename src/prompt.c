@@ -114,6 +114,8 @@ void toknize(){
     parse_line(argv);
 }
 
+
+
 void handleMessage(){
     //printf("%s %d\n" , argv[0], argc);
     if(argc == 0){
@@ -177,21 +179,7 @@ void handleMessage(){
         builtin_jobs();
     }
     else{
-        pid_t pid = fork();
-        if(pid == 0){
-            // Child process
-            execvp(argv[0], argv);
-            perror("execvp");
-            exit(1);
-        }
-        else if(pid > 0){
-            // Parent process
-            int status;
-            waitpid(pid, &status, 0);
-        }
-        else{
-            perror("fork");
-        }
+        outer_command_exe();
     }
     //printf("%s %s\n",input_file, output_file);
 }

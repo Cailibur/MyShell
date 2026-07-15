@@ -253,3 +253,21 @@ void builtin_jobs(){
         }
     }
 }
+
+void outer_command_exe(){
+    pid_t pid = fork();
+    if(pid == 0){
+        // Child process
+        execvp(argv[0], argv);
+        perror("execvp");
+        exit(1);
+    }
+    else if(pid > 0){
+        // Parent process
+        int status;
+        waitpid(pid, &status, 0);
+    }
+    else{
+        perror("fork");
+    }
+}

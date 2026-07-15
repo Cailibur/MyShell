@@ -14,5 +14,6 @@ void history();
 void builtin_sleep();
 void clear();
 void builtin_jobs();
+void outer_command_exe();
 
 #endif

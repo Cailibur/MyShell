@@ -59,7 +59,7 @@ int tokenize(){
                 line[r] = '\0';
                 l = r;
                 r++;
-                add_tok(TOK_IN);
+                add_tok(TOK_OUT);
                 l = r;
                 continue;
             }
