@@ -14,8 +14,16 @@ extern char *old_pwd;
 extern char **environ;
 extern int bg_exe;
 
+typedef struct command {
+    int argc;
+    char *argv[MAX_ARGS];
+    char *input_file;
+    char *output_file;
+    int append;
+} command;
+
 void toknize();
-void parse_line(char* line , char* argv[]);
+void parse_line(char* argv[]);
 void handleMessage();
 
 #endif

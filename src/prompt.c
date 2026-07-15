@@ -14,40 +14,73 @@
 #include "prompt.h"
 #include "builtin.h"
 #include "color.h"
+#include "tokenizer.h"
 
 char cwd[PATH_MAX];
 char line[MAX_LINE];
 char tmp_line[MAX_LINE];
 char *argv[MAX_ARGS];
-char *input_file;
+char *input_file = NULL;
+char *output_file = NULL;
 int argc = 0;
 char *old_pwd = NULL;
 int bg_exe = 0;
+int append = 0;
 
 //Using tokenizer to split the input into argvs.
-void parse_line(char* line , char* argv[]){
+void parse_line(char* argv[]){
     argc = 0;
-    char *token = strtok(line, " \t\n");
-    while (token != NULL && argc < MAX_ARGS - 1) {
-        if(strcmp(token, "<") == 0) {
+    append = 0;
+    input_file = NULL;
+    output_file = NULL;
+    int p = 0;
+    while (p < tok_cnt && argc < MAX_ARGS - 1) {
+        if(tokens[p].type == TOK_IN) {
             // Handle input redirection
-            token = strtok(NULL, " \t\n");
-            if (token != NULL) {
-                input_file = token;
+            p++;
+            if (p >= tok_cnt) {
+                fprintf(stderr, "Error: No input file specified for redirection.\n");
+                return;
             } 
-            else {
+            else if(input_file != NULL){
+                fprintf(stderr, "Error: multiple input redirections.\n");
+                return;
+            }
+            input_file = tokens[p].text;
+        } 
+        else if(tokens[p].type == TOK_OUT){
+            p++;
+            if(p >= tok_cnt){
                 fprintf(stderr, "Error: No input file specified for redirection.\n");
                 return;
             }
-        } 
-        else {
-            argv[argc++] = token;
+            else if(output_file != NULL){
+                fprintf(stderr, "Error: multiple output redirections.\n");
+                return;
+            }
+            output_file = tokens[p].text;
         }
-        token = strtok(NULL, " \t\n");
+        else if(tokens[p].type == TOK_APPEND){
+            p++;
+            if(p >= tok_cnt){
+                fprintf(stderr, "Error: No input file specified for redirection.\n");
+                return;
+            }
+            else if(output_file != NULL){
+                fprintf(stderr, "Error: multiple output redirections.\n");
+                return;
+            }
+            output_file = tokens[p].text;
+            append = 1;
+        }
+        else {
+            argv[argc++] = tokens[p].text;
+        }
+        p++;
     }
     //printf("%d\n", argc);
     argv[argc] = NULL;
-    if(argc > 0 && strcmp(argv[argc-1], "&") == 0){
+    if(argc > 0 && tokens[tok_cnt-1].type == TOK_AMP){
         argv[--argc] = NULL;
         bg_exe = 1;
     }
@@ -74,10 +107,15 @@ void toknize(){
     if(fgets(line , sizeof(line) , stdin) == NULL) return;
     strcpy(tmp_line, line);
     write_history(line);
-    parse_line(tmp_line , argv);
+    if(tokenize() < 0){
+        fprintf(stderr, "tokenizer: unexpected error.\n");
+        return;
+    }
+    parse_line(argv);
 }
 
 void handleMessage(){
+    //printf("%s %d\n" , argv[0], argc);
     if(argc == 0){
         return;
     }
@@ -155,6 +193,5 @@ void handleMessage(){
             perror("fork");
         }
     }
-    //printf("%d\n" , argc);
-    //printf("%s\n",input_file);
+    //printf("%s %s\n",input_file, output_file);
 }

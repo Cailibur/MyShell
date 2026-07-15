@@ -9,7 +9,8 @@ SRCS = $(SRC_DIR)/SH.c \
        $(SRC_DIR)/prompt.c \
        $(SRC_DIR)/builtin.c \
        $(SRC_DIR)/job.c \
-       $(SRC_DIR)/exstr.c
+       $(SRC_DIR)/exstr.c \
+	   $(SRC_DIR)/tokenizer.c
 
 OBJS = $(patsubst $(SRC_DIR)/%.c,$(BUILD_DIR)/%.o,$(SRCS))
 
